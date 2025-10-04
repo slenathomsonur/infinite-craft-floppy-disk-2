@@ -1,0 +1,2258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Craft | Macintosh Edition</title>
+    <style>
+        /* Enhanced Macintosh Color Scheme */
+        :root {
+            --light: #E8F4FF;
+            --medium: #B8D9FF;
+            --dark: #6899CC;
+            --darker: #386699;
+            --mac-beige: #F5F5DC;
+            --mac-dark-beige: #D0C8A8;
+            --mac-border: #000000;
+            --mac-blue: #0066CC;
+            --mac-red: #CC3333;
+            --mac-green: #33CC66;
+            --mac-purple: #9933CC;
+            --mac-orange: #FF9900;
+            --mac-yellow: #FFCC00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Chicago', 'Monaco', 'Courier New', monospace;
+            touch-action: manipulation;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--mac-beige) 0%, var(--mac-dark-beige) 100%);
+            color: #000000;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* CRT Effects */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .crt-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            pointer-events: none;
+        }
+
+        /* Tab System */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--dark);
+            border-top: 2px solid #000000;
+            padding: 5px 10px;
+            display: flex;
+            gap: 5px;
+            z-index: 1000;
+            height: 40px;
+            align-items: center;
+        }
+
+        .tab {
+            background: var(--medium);
+            border: 2px solid #000000;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #000000;
+            border-radius: 4px;
+            user-select: none;
+            min-width: 80px;
+            text-align: center;
+            box-shadow: 2px 2px 0 var(--darker);
+            position: relative;
+        }
+
+        .tab.active {
+            background: var(--mac-blue);
+            color: #FFFFFF;
+        }
+
+        .tab.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+        }
+
+        .closed-tabs {
+            margin-left: auto;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .closed-tab {
+            background: var(--darker);
+            border: 1px solid #000000;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            color: #FFFFFF;
+            border-radius: 3px;
+        }
+
+        .add-tab {
+            background: var(--medium);
+            border: 2px solid #000000;
+            padding: 6px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #000000;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        /* Screen System */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 40px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--mac-beige);
+        }
+
+        #floppy-screen { z-index: 300; display: flex; }
+        #login-screen { z-index: 200; display: none; }
+        #loading-screen { z-index: 150; display: none; flex-direction: column; }
+        #game-screen { z-index: 100; display: none; }
+
+        /* Floppy Screen */
+        .floppy-container {
+            background: #FFFFFF;
+            border: 4px solid #000000;
+            border-radius: 12px;
+            padding: 40px;
+            width: 500px;
+            max-width: 90vw;
+            box-shadow: 8px 8px 0 var(--darker);
+            text-align: center;
+            background: var(--mac-beige);
+        }
+
+        .floppy-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .floppy-subtitle {
+            font-size: 14px;
+            color: var(--dark);
+            margin-bottom: 30px;
+        }
+
+        .floppy-drive {
+            width: 200px;
+            height: 200px;
+            background: var(--dark);
+            border: 4px solid #000000;
+            margin: 0 auto 30px;
+            position: relative;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            color: white;
+        }
+
+        .floppy-slot {
+            width: 120px;
+            height: 20px;
+            background: var(--darker);
+            border: 2px solid #000000;
+            border-radius: 4px;
+        }
+
+        .floppy-disk {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            border: 3px solid #000000;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #FFFFFF;
+            font-size: 14px;
+            text-align: center;
+            margin: 20px auto;
+            position: relative;
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+
+        .floppy-disk::before {
+            content: "";
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+
+        .floppy-disk.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+        }
+
+        /* Login Screen - Retro Mac Style */
+        .login-container {
+            background: #FFFFFF;
+            border: 4px solid #000000;
+            border-radius: 12px;
+            padding: 40px;
+            width: 500px;
+            max-width: 90vw;
+            box-shadow: 8px 8px 0 var(--darker);
+            text-align: center;
+            background: var(--mac-beige);
+        }
+
+        .login-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #000000;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--dark);
+            margin-bottom: 30px;
+        }
+
+        .user-accounts {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .user-account {
+            background: var(--light);
+            border: 3px solid #000000;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .user-account:hover {
+            background: var(--medium);
+            transform: translate(2px, 2px);
+        }
+
+        .user-account.selected {
+            background: var(--mac-blue);
+            color: #FFFFFF;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--dark);
+            border: 2px solid #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .user-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-type {
+            font-size: 12px;
+            color: var(--dark);
+        }
+
+        .selected .user-type {
+            color: var(--light);
+        }
+
+        .password-prompt {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--light);
+            border: 2px solid #000000;
+            border-radius: 4px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #000000;
+            font-family: 'Monaco', 'Courier New', monospace;
+            margin: 5px 0;
+        }
+
+        .login-button {
+            background: linear-gradient(to bottom, var(--light), var(--medium));
+            color: #000000;
+            border: 3px solid #000000;
+            padding: 12px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 4px 4px 0 var(--darker);
+            font-weight: bold;
+            margin: 10px;
+        }
+
+        .login-button:hover {
+            background: linear-gradient(to bottom, var(--medium), var(--dark));
+            color: #FFFFFF;
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--darker);
+        }
+
+        /* Loading Screen */
+        .loading-container {
+            text-align: center;
+            background: #FFFFFF;
+            border: 4px solid #000000;
+            border-radius: 12px;
+            padding: 40px;
+            width: 500px;
+            max-width: 90vw;
+            box-shadow: 8px 8px 0 var(--darker);
+            background: var(--mac-beige);
+        }
+
+        .loading-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .loading-animation {
+            width: 100%;
+            height: 30px;
+            border: 3px solid #000000;
+            background: #FFFFFF;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mac-blue), var(--mac-green));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .loading-status {
+            font-size: 14px;
+            color: var(--dark);
+            margin-top: 10px;
+        }
+
+        /* Game Screen */
+        .mac-computer {
+            width: min(1200px, 95vw);
+            height: min(700px, 80vh);
+            background: var(--medium);
+            border: 20px solid var(--dark);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.4), inset 0 0 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .mac-screen {
+            background-color: #FFFFFF;
+            border: 3px solid #000000;
+            border-radius: 8px;
+            padding: 15px;
+            height: 100%;
+            overflow-y: auto;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            background: var(--mac-beige);
+        }
+
+        /* Desktop */
+        .desktop {
+            height: 100%;
+            position: relative;
+        }
+
+        .menu-bar {
+            background: linear-gradient(to bottom, var(--medium), var(--dark));
+            border-bottom: 2px solid #000000;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .desktop-icons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 25px;
+            padding: 25px;
+        }
+
+        .desktop-icon {
+            width: 80px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s ease;
+        }
+
+        .desktop-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .icon-img {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            border: 2px solid #000000;
+            margin: 0 auto 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            border-radius: 4px;
+        }
+
+        .icon-label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Windows */
+        .window {
+            position: absolute;
+            background: var(--light);
+            border: 3px solid #000000;
+            box-shadow: 6px 6px 0 var(--darker);
+            z-index: 10;
+            display: none;
+            min-width: 300px;
+            min-height: 200px;
+            resize: both;
+            overflow: auto;
+            background: var(--mac-beige);
+        }
+
+        .window-header {
+            background: linear-gradient(to bottom, var(--mac-blue), #0055AA);
+            color: #FFFFFF;
+            padding: 8px 12px;
+            border-bottom: 2px solid #000000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: move;
+            user-select: none;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .window-control {
+            width: 14px;
+            height: 14px;
+            border: 1px solid #000000;
+            background: var(--light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 9px;
+            color: #000000;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        .window-control:hover {
+            background: var(--medium);
+        }
+
+        .window-content {
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100% - 40px);
+        }
+
+        /* Resize Handle */
+        .resize-handle {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: var(--dark);
+            cursor: nwse-resize;
+            border: 1px solid #000000;
+        }
+
+        /* Game Elements */
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .crafting-section, .inventory-section {
+            background: #FFFFFF;
+            border: 2px solid #000000;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .elements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 2px solid var(--dark);
+            background: var(--light);
+            border-radius: 4px;
+        }
+
+        .element {
+            background: linear-gradient(135deg, #FFFFFF, var(--light));
+            border: 2px solid var(--dark);
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+            cursor: grab;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            color: #000000;
+            box-shadow: 2px 2px 0 var(--dark);
+            user-select: none;
+            font-weight: bold;
+        }
+
+        .element:hover {
+            background: linear-gradient(135deg, var(--light), var(--medium));
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 var(--dark);
+        }
+
+        .element.dragging {
+            opacity: 0.8;
+            transform: scale(0.95);
+        }
+
+        .element.impossible {
+            background: linear-gradient(135deg, var(--mac-purple), #8822AA);
+            color: #FFFFFF;
+            border-color: var(--mac-purple);
+            animation: glow 2s infinite;
+        }
+
+        .element.rare {
+            background: linear-gradient(135deg, var(--mac-orange), #CC7700);
+            color: #FFFFFF;
+            border-color: var(--mac-orange);
+        }
+
+        .element.epic {
+            background: linear-gradient(135deg, var(--mac-green), #22AA55);
+            color: #FFFFFF;
+            border-color: var(--mac-green);
+        }
+
+        .element.virus {
+            background: linear-gradient(135deg, var(--mac-red), #AA2222);
+            color: #FFFFFF;
+            border-color: var(--mac-red);
+            animation: virus-pulse 1s infinite;
+        }
+
+        .element.selected {
+            border: 3px solid var(--mac-blue);
+            box-shadow: 0 0 10px var(--mac-blue);
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--mac-purple); }
+            50% { box-shadow: 0 0 20px var(--mac-purple); }
+            100% { box-shadow: 0 0 5px var(--mac-purple); }
+        }
+
+        @keyframes virus-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .crafting-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 25px 0;
+            min-height: 120px;
+            background: var(--light);
+            border: 3px dashed var(--dark);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .slot {
+            width: 80px;
+            height: 80px;
+            border: 3px dashed var(--dark);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #FFFFFF;
+            font-size: 12px;
+            text-align: center;
+            padding: 8px;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            user-select: none;
+            font-weight: bold;
+        }
+
+        .slot.highlight {
+            border-color: var(--mac-blue);
+            background-color: var(--light);
+            box-shadow: 0 0 15px var(--mac-blue);
+        }
+
+        .slot.filled {
+            border-style: solid;
+            background: linear-gradient(135deg, var(--light), #FFFFFF);
+            border-color: var(--mac-green);
+            color: #000000;
+        }
+
+        .mac-button {
+            background: linear-gradient(to bottom, var(--light), var(--medium));
+            color: #000000;
+            border: 2px solid #000000;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            box-shadow: 3px 3px 0 var(--darker);
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .mac-button:hover {
+            background: linear-gradient(to bottom, var(--medium), var(--dark));
+            color: #FFFFFF;
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 var(--darker);
+        }
+
+        .mac-button:disabled {
+            background: var(--dark);
+            color: var(--darker);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 1px 1px 0 var(--darker);
+        }
+
+        .floppy-rack {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: var(--light);
+            border: 2px solid var(--dark);
+            border-radius: 6px;
+        }
+
+        .inventory-floppy {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            border: 3px solid #000000;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 3px 3px 0 var(--darker);
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+
+        .inventory-floppy:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 var(--darker);
+        }
+
+        /* Auto-save Indicator */
+        .save-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--mac-green);
+            color: #FFFFFF;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* Exit Button */
+        .exit-button {
+            position: fixed;
+            bottom: 50px;
+            right: 20px;
+            background: var(--mac-red);
+            color: #FFFFFF;
+            border: 2px solid #000000;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            box-shadow: 3px 3px 0 var(--darker);
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        /* Trash Can */
+        .trash-can {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 64px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .trash-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--dark);
+            border: 1px solid #000000;
+            margin: 0 auto 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        /* Floppy Save Area */
+        .floppy-save-area {
+            min-height: 200px;
+            border: 3px dashed var(--dark);
+            padding: 20px;
+            margin: 15px 0;
+            background: var(--light);
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .floppy-save-area.highlight {
+            border-color: var(--mac-green);
+            background: var(--mac-green);
+            color: #FFFFFF;
+        }
+
+        /* Element Selection for Floppy */
+        .element-selection {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid var(--dark);
+            padding: 10px;
+            margin: 10px 0;
+            background: var(--light);
+            border-radius: 4px;
+        }
+
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+        }
+
+        /* Element Detail Popup */
+        .element-detail {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--light);
+            border: 4px solid #000000;
+            box-shadow: 8px 8px 0 var(--darker);
+            z-index: 2000;
+            width: 400px;
+            max-width: 90vw;
+            display: none;
+        }
+
+        /* Virus Animation */
+        .virus-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--mac-red);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .virus-message {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* Tab Rename Input */
+        .tab-rename {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            color: inherit;
+            font-size: inherit;
+            text-align: center;
+            font-family: inherit;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div class="crt-glow"></div>
+    
+    <!-- Virus Animation Screen -->
+    <div class="virus-animation" id="virus-animation">
+        <div class="virus-message">⚠️ VIRUS DETECTED! ⚠️</div>
+        <div>System reset required...</div>
+    </div>
+    
+    <!-- Auto-save Indicator -->
+    <div class="save-indicator" id="save-indicator">Auto-saved!</div>
+    
+    <!-- Exit Button -->
+    <button class="exit-button" id="exit-button" style="display: none;">EXIT TO LOGIN</button>
+
+    <!-- Tab System -->
+    <div class="tab-bar" id="tab-bar">
+        <div class="tab active" data-tab="floppy" draggable="true">Floppy Disk</div>
+        <div class="closed-tabs" id="closed-tabs"></div>
+        <div class="add-tab" onclick="createNewTab()">+</div>
+    </div>
+
+    <!-- Floppy Screen -->
+    <div class="screen" id="floppy-screen">
+        <div class="floppy-container">
+            <div class="floppy-title">Infinite Craft</div>
+            <div class="floppy-subtitle">Macintosh Edition</div>
+            
+            <div class="floppy-drive" id="floppy-drive" ondrop="dropFloppy(event)" ondragover="allowDrop(event)">
+                <div class="floppy-slot"></div>
+            </div>
+            
+            <div class="floppy-disk" id="floppy-disk" draggable="true" ondragstart="dragFloppy(event)">
+                <div>Infinite Craft</div>
+                <div>System Disk</div>
+            </div>
+            
+            <div class="floppy-instructions">
+                Drag the floppy disk into the drive to start the system
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="screen" id="login-screen">
+        <div class="login-container">
+            <div class="login-title">Infinite Craft</div>
+            <div class="login-subtitle">Macintosh Edition</div>
+            
+            <div class="user-accounts">
+                <div class="user-account" data-user="admin" onclick="selectUser(this)">
+                    <div class="user-avatar">A</div>
+                    <div class="user-info">
+                        <div class="user-name">Administrator</div>
+                        <div class="user-type">Full system access + All apps</div>
+                    </div>
+                    <div class="password-prompt" id="admin-password">
+                        <input type="password" class="password-input" placeholder="Enter password: admin123" id="admin-password-input">
+                        <button class="mac-button" onclick="verifyAdminPassword()">LOGIN</button>
+                    </div>
+                </div>
+                <div class="user-account" data-user="user" onclick="selectUser(this)">
+                    <div class="user-avatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name">User</div>
+                        <div class="user-type">Standard access + Basic apps</div>
+                    </div>
+                </div>
+                <div class="user-account" data-user="guest" onclick="selectUser(this)">
+                    <div class="user-avatar">G</div>
+                    <div class="user-info">
+                        <div class="user-name">Guest</div>
+                        <div class="user-type">Limited access + Few apps</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="login-button" onclick="login()" id="login-btn">
+                START SYSTEM
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="screen" id="loading-screen">
+        <div class="loading-container">
+            <div class="loading-title">Loading System...</div>
+            <div class="loading-animation">
+                <div class="loading-progress" id="loading-progress"></div>
+            </div>
+            <div class="loading-status" id="loading-status">Initializing...</div>
+            <button class="login-button" onclick="cancelLoad()" style="margin-top: 20px;">
+                CANCEL
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div class="screen" id="game-screen">
+        <div class="mac-computer">
+            <div class="mac-screen">
+                <div class="desktop">
+                    <div class="menu-bar">
+                        <div class="apple-menu" onclick="showSystemMenu()">🍎</div>
+                        <div>File Edit View Special</div>
+                        <div id="menu-time">12:00 PM</div>
+                    </div>
+                    
+                    <div class="desktop-icons" id="desktop-icons">
+                        <!-- Apps will be loaded based on user type -->
+                    </div>
+                    
+                    <!-- Trash Can -->
+                    <div class="trash-can" onclick="emptyTrash()">
+                        <div class="trash-icon">🗑</div>
+                        <div class="icon-label">Trash</div>
+                    </div>
+                    
+                    <!-- Windows will be created dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Element Detail Popup -->
+    <div class="element-detail" id="element-detail">
+        <div class="window-header">
+            <div>Element Details</div>
+            <div class="window-controls">
+                <div class="window-control" onclick="closeElementDetail()">×</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="floppy-disk">
+                <div id="detail-element-name">Element</div>
+                <div class="floppy-label" id="detail-element-rarity">Common</div>
+            </div>
+            <div id="detail-element-info">
+                <p><strong>Description:</strong> <span id="detail-description"></span></p>
+                <p><strong>Recipe:</strong> <span id="detail-recipe"></span></p>
+                <p><strong>Discovered:</strong> <span id="detail-date"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Game State with persistent storage
+        const gameState = {
+            currentUser: null,
+            currentTab: 'floppy',
+            tabs: [
+                { id: 'floppy', name: 'Floppy Disk', type: 'system' }
+            ],
+            userData: {
+                admin: {
+                    inventory: new Set(['Earth', 'Fire', 'Water', 'Wind']),
+                    savedFloppies: [],
+                    unlockedAll: false
+                },
+                user: {
+                    inventory: new Set(['Earth', 'Fire', 'Water', 'Wind']),
+                    savedFloppies: [],
+                    unlockedAll: false
+                },
+                guest: {
+                    inventory: new Set(['Earth', 'Fire', 'Water', 'Wind']),
+                    savedFloppies: [],
+                    unlockedAll: false
+                }
+            },
+            craftingSlots: [null, null],
+            userApps: {
+                admin: ['crafting', 'inventory', 'floppy', 'settings', 'performance', 'advanced'],
+                user: ['crafting', 'inventory', 'floppy', 'settings', 'performance'],
+                guest: ['crafting', 'inventory', 'performance']
+            },
+            combinations: {
+                'Earth+Fire': 'Lava', 'Earth+Water': 'Mud', 'Earth+Wind': 'Dust',
+                'Fire+Water': 'Steam', 'Fire+Wind': 'Smoke', 'Water+Wind': 'Wave',
+                'Water+Water': 'Ocean', 'Earth+Earth': 'Mountain', 'Fire+Fire': 'Volcano',
+                'Wind+Wind': 'Storm', 'Lava+Water': 'Obsidian', 'Lava+Earth': 'Magma',
+                'Mud+Fire': 'Brick', 'Mud+Water': 'Swamp', 'Steam+Earth': 'Geyser',
+                'Smoke+Water': 'Fog', 'Dust+Fire': 'Ash', 'Dust+Water': 'Clay',
+                'Wave+Earth': 'Beach', 'Ocean+Wind': 'Tsunami', 'Obsidian+Fire': 'Glass',
+                'Glass+Sand': 'Hourglass', 'Hourglass+Fire': 'Time', 'Time+Time': 'Paradox',
+                'Crafting+Trash': 'Software', 'Inventory+Trash': 'Database',
+                'Software+Database': 'System', 'System+User': 'Interface',
+                'Interface+System': 'Virus'  // The dangerous combination!
+            },
+            elementDescriptions: {
+                'Trash': 'The ultimate element of disposal. Created when applications meet their demise in the trash can. Rarity: IMPOSSIBLE',
+                'Earth': 'The solid foundation of all existence.',
+                'Fire': 'The transformative power of pure energy.',
+                'Water': 'The fluid essence of life itself.',
+                'Wind': 'The invisible force that moves all things.',
+                'Lava': 'Molten rock from the Earth\'s core.',
+                'Mud': 'Earth and water combined in perfect harmony.',
+                'Dust': 'Fine particles carried by the wind.',
+                'Steam': 'Water transformed by intense heat.',
+                'Smoke': 'The visible residue of combustion.',
+                'Wave': 'Water given motion and purpose.',
+                'Ocean': 'Vast body of saltwater teeming with life.',
+                'Mountain': 'The peak of earthly ambition.',
+                'Volcano': 'Earth\'s fiery breath unleashed.',
+                'Storm': 'Atmospheric turmoil and power.',
+                'Obsidian': 'Volcanic glass forged in extreme heat.',
+                'Magma': 'Molten rock beneath the Earth\'s surface.',
+                'Brick': 'Fired clay shaped by human hands.',
+                'Swamp': 'Water and earth in stagnant harmony.',
+                'Geyser': 'Underground pressure finding release.',
+                'Fog': 'Earthbound clouds of mystery.',
+                'Ash': 'The final remains of what fire consumes.',
+                'Clay': 'Earth refined by water\'s touch.',
+                'Beach': 'Where land and sea embrace.',
+                'Tsunami': 'Ocean\'s wrath made manifest.',
+                'Glass': 'Transparency forged in fire.',
+                'Hourglass': 'Time made visible and tangible.',
+                'Time': 'The fourth dimension of existence.',
+                'Paradox': 'A self-contradictory statement of reality.',
+                'Software': 'Digital instructions and logic.',
+                'Database': 'Organized collection of information.',
+                'System': 'Interconnected components working together.',
+                'Interface': 'The boundary between different systems.',
+                'Virus': '⚠️ DANGEROUS! Combining Interface with System creates a virus that will reset your entire game! ⚠️'
+            },
+            performance: {
+                fps: 60,
+                memory: 45,
+                cpu: 33
+            }
+        };
+
+        // DOM Elements
+        const floppyScreen = document.getElementById('floppy-screen');
+        const loginScreen = document.getElementById('login-screen');
+        const loadingScreen = document.getElementById('loading-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const exitButton = document.getElementById('exit-button');
+        const tabBar = document.getElementById('tab-bar');
+        const closedTabs = document.getElementById('closed-tabs');
+        const desktopIcons = document.getElementById('desktop-icons');
+        const virusAnimation = document.getElementById('virus-animation');
+
+        // Load saved data from localStorage
+        function loadSavedData() {
+            const savedData = localStorage.getItem('infiniteCraftData');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                // Convert Set objects back from arrays
+                Object.keys(parsedData.userData).forEach(user => {
+                    if (parsedData.userData[user].inventory) {
+                        parsedData.userData[user].inventory = new Set(parsedData.userData[user].inventory);
+                    }
+                });
+                Object.assign(gameState, parsedData);
+                showSaveIndicator('Game data loaded!');
+            }
+        }
+
+        // Save data to localStorage
+        function saveGameData() {
+            // Convert Set objects to arrays for JSON serialization
+            const saveData = JSON.parse(JSON.stringify(gameState));
+            Object.keys(saveData.userData).forEach(user => {
+                if (saveData.userData[user].inventory) {
+                    saveData.userData[user].inventory = Array.from(saveData.userData[user].inventory);
+                }
+            });
+            
+            localStorage.setItem('infiniteCraftData', JSON.stringify(saveData));
+            showSaveIndicator('Game saved!');
+        }
+
+        // Login Functions
+        let selectedUser = null;
+
+        function selectUser(element) {
+            document.querySelectorAll('.user-account').forEach(user => {
+                user.classList.remove('selected');
+                const passwordPrompt = user.querySelector('.password-prompt');
+                if (passwordPrompt) passwordPrompt.style.display = 'none';
+            });
+            element.classList.add('selected');
+            selectedUser = element.dataset.user;
+            
+            // Show password prompt for admin
+            if (selectedUser === 'admin') {
+                const passwordPrompt = element.querySelector('.password-prompt');
+                if (passwordPrompt) passwordPrompt.style.display = 'block';
+            }
+        }
+
+        function verifyAdminPassword() {
+            const passwordInput = document.getElementById('admin-password-input');
+            if (passwordInput && passwordInput.value === 'admin123') {
+                proceedWithLogin();
+            } else {
+                alert('Incorrect password! The password is "admin123"');
+                if (passwordInput) passwordInput.value = '';
+            }
+        }
+
+        function login() {
+            if (!selectedUser) {
+                alert('Please select a user account!');
+                return;
+            }
+            
+            // Skip password for non-admin users
+            if (selectedUser !== 'admin') {
+                proceedWithLogin();
+            } else {
+                // For admin, password is handled in verifyAdminPassword
+                // If we're here, it means they clicked START SYSTEM without using the admin login button
+                const passwordInput = document.getElementById('admin-password-input');
+                if (passwordInput && passwordInput.value === 'admin123') {
+                    proceedWithLogin();
+                } else {
+                    alert('Please use the LOGIN button for Administrator account');
+                }
+            }
+        }
+
+        function proceedWithLogin() {
+            gameState.currentUser = selectedUser;
+            
+            // Create a new tab for this user session
+            createUserTab(selectedUser);
+            
+            loginScreen.style.display = 'none';
+            loadingScreen.style.display = 'flex';
+            startLoading();
+        }
+
+        function startLoading() {
+            const steps = [
+                { text: 'Booting System...', progress: 20 },
+                { text: 'Loading User Profile...', progress: 40 },
+                { text: 'Initializing Applications...', progress: 60 },
+                { text: 'Loading Element Database...', progress: 80 },
+                { text: 'Starting Infinite Craft...', progress: 100 }
+            ];
+            
+            let currentStep = 0;
+            
+            function nextStep() {
+                if (currentStep < steps.length) {
+                    const step = steps[currentStep];
+                    document.getElementById('loading-status').textContent = step.text;
+                    document.getElementById('loading-progress').style.width = step.progress + '%';
+                    currentStep++;
+                    setTimeout(nextStep, 800);
+                } else {
+                    loadingScreen.style.display = 'none';
+                    gameScreen.style.display = 'flex';
+                    exitButton.style.display = 'block';
+                    initGame();
+                    
+                    // Switch to the new user tab
+                    const userTabId = `user-${selectedUser}`;
+                    switchTab(userTabId);
+                }
+            }
+            
+            nextStep();
+        }
+
+        function cancelLoad() {
+            loadingScreen.style.display = 'none';
+            loginScreen.style.display = 'flex';
+        }
+
+        // Floppy Disk Functions
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function dragFloppy(ev) {
+            ev.dataTransfer.setData("text", "floppy");
+            ev.target.classList.add('dragging');
+        }
+
+        function dropFloppy(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("text");
+            
+            if (data === "floppy") {
+                const floppyDisk = document.getElementById('floppy-disk');
+                const floppyDrive = document.getElementById('floppy-drive');
+                
+                // Animate the floppy disk into the drive
+                floppyDisk.style.position = 'absolute';
+                floppyDisk.style.top = '50%';
+                floppyDisk.style.left = '50%';
+                floppyDisk.style.transform = 'translate(-50%, -50%)';
+                floppyDisk.style.zIndex = '10';
+                
+                // Hide the floppy disk and show login screen after a delay
+                setTimeout(() => {
+                    floppyDisk.style.display = 'none';
+                    floppyScreen.style.display = 'none';
+                    loginScreen.style.display = 'flex';
+                }, 1000);
+            }
+        }
+
+        // Tab System
+        function setupTabSystem() {
+            // Make tabs draggable
+            tabBar.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('tab')) {
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', e.target.dataset.tab);
+                }
+            });
+
+            tabBar.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('tab')) {
+                    e.target.classList.remove('dragging');
+                }
+            });
+
+            tabBar.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(tabBar, e.clientX);
+                const draggable = document.querySelector('.dragging');
+                if (draggable && afterElement) {
+                    tabBar.insertBefore(draggable, afterElement);
+                }
+            });
+        }
+
+        function getDragAfterElement(container, x) {
+            const draggableElements = [...container.querySelectorAll('.tab:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = x - box.left - box.width / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function switchTab(tabId) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.tab === tabId) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Show appropriate screen
+            if (tabId === 'floppy') {
+                floppyScreen.style.display = 'flex';
+                loginScreen.style.display = 'none';
+                loadingScreen.style.display = 'none';
+                gameScreen.style.display = 'none';
+                exitButton.style.display = 'none';
+            } else if (tabId.startsWith('user-')) {
+                const user = tabId.replace('user-', '');
+                gameState.currentUser = user;
+                floppyScreen.style.display = 'none';
+                loginScreen.style.display = 'none';
+                loadingScreen.style.display = 'none';
+                gameScreen.style.display = 'flex';
+                exitButton.style.display = 'block';
+                
+                // Update the desktop for this user
+                loadDesktopApps();
+                
+                // Close all windows
+                document.querySelectorAll('.window').forEach(window => {
+                    window.style.display = 'none';
+                });
+            }
+            
+            gameState.currentTab = tabId;
+        }
+
+        function createNewTab() {
+            // New tabs go directly to the login screen
+            floppyScreen.style.display = 'none';
+            loginScreen.style.display = 'flex';
+        }
+
+        function createUserTab(user) {
+            const tabId = `user-${user}`;
+            const tabName = `${user.charAt(0).toUpperCase() + user.slice(1)} Session`;
+            
+            // Check if tab already exists
+            const existingTab = document.querySelector(`.tab[data-tab="${tabId}"]`);
+            if (existingTab) {
+                switchTab(tabId);
+                return;
+            }
+            
+            // Add to game state
+            gameState.tabs.push({ id: tabId, name: tabName, type: 'user', user: user });
+            
+            // Create tab element
+            const newTab = document.createElement('div');
+            newTab.className = 'tab';
+            newTab.dataset.tab = tabId;
+            newTab.textContent = tabName;
+            newTab.draggable = true;
+            newTab.onclick = () => switchTab(tabId);
+            newTab.ondblclick = () => renameTab(newTab);
+            
+            tabBar.insertBefore(newTab, document.querySelector('.closed-tabs'));
+            
+            // Switch to the new tab
+            switchTab(tabId);
+        }
+
+        function renameTab(tabElement) {
+            const currentName = tabElement.textContent;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'tab-rename';
+            input.value = currentName;
+            
+            tabElement.textContent = '';
+            tabElement.appendChild(input);
+            input.focus();
+            input.select();
+            
+            input.onblur = function() {
+                finishRenaming(tabElement, input);
+            };
+            
+            input.onkeydown = function(e) {
+                if (e.key === 'Enter') {
+                    finishRenaming(tabElement, input);
+                } else if (e.key === 'Escape') {
+                    tabElement.textContent = currentName;
+                }
+            };
+        }
+
+        function finishRenaming(tabElement, input) {
+            const newName = input.value.trim() || 'Unnamed Tab';
+            tabElement.textContent = newName;
+            
+            // Update the tab name in gameState
+            const tabId = tabElement.dataset.tab;
+            const tabIndex = gameState.tabs.findIndex(tab => tab.id === tabId);
+            if (tabIndex !== -1) {
+                gameState.tabs[tabIndex].name = newName;
+            }
+            
+            saveGameData();
+        }
+
+        // Game Initialization
+        function initGame() {
+            setupTabSystem();
+            updateTime();
+            loadDesktopApps();
+            setupExitButton();
+            
+            // Auto-save every 30 seconds
+            setInterval(saveGameData, 30000);
+            
+            // Load any saved data
+            loadSavedData();
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('menu-time').textContent = timeString;
+            
+            // Update every minute
+            setTimeout(updateTime, 60000);
+        }
+
+        function loadDesktopApps() {
+            desktopIcons.innerHTML = '';
+            
+            const apps = gameState.userApps[gameState.currentUser];
+            
+            apps.forEach(app => {
+                const icon = document.createElement('div');
+                icon.className = 'desktop-icon';
+                icon.onclick = () => openApp(app);
+                
+                const iconImg = document.createElement('div');
+                iconImg.className = 'icon-img';
+                
+                const iconLabel = document.createElement('div');
+                iconLabel.className = 'icon-label';
+                
+                switch(app) {
+                    case 'crafting':
+                        iconImg.textContent = '🧪';
+                        iconLabel.textContent = 'Crafting';
+                        break;
+                    case 'inventory':
+                        iconImg.textContent = '📦';
+                        iconLabel.textContent = 'Inventory';
+                        break;
+                    case 'floppy':
+                        iconImg.textContent = '💾';
+                        iconLabel.textContent = 'Floppy Save';
+                        break;
+                    case 'settings':
+                        iconImg.textContent = '⚙️';
+                        iconLabel.textContent = 'Settings';
+                        break;
+                    case 'performance':
+                        iconImg.textContent = '📊';
+                        iconLabel.textContent = 'Performance';
+                        break;
+                    case 'advanced':
+                        iconImg.textContent = '🔬';
+                        iconLabel.textContent = 'Advanced';
+                        break;
+                }
+                
+                icon.appendChild(iconImg);
+                icon.appendChild(iconLabel);
+                desktopIcons.appendChild(icon);
+            });
+        }
+
+        function openApp(appName) {
+            // Close any existing windows for this app
+            const existingWindow = document.getElementById(`${appName}-window`);
+            if (existingWindow) {
+                existingWindow.style.display = 'block';
+                bringToFront(existingWindow);
+                return;
+            }
+            
+            // Create new window
+            const window = document.createElement('div');
+            window.className = 'window';
+            window.id = `${appName}-window`;
+            
+            const windowHeader = document.createElement('div');
+            windowHeader.className = 'window-header';
+            
+            const windowTitle = document.createElement('div');
+            windowTitle.textContent = getAppTitle(appName);
+            
+            const windowControls = document.createElement('div');
+            windowControls.className = 'window-controls';
+            
+            const closeButton = document.createElement('div');
+            closeButton.className = 'window-control';
+            closeButton.textContent = '×';
+            closeButton.onclick = () => window.style.display = 'none';
+            
+            const minimizeButton = document.createElement('div');
+            minimizeButton.className = 'window-control';
+            minimizeButton.textContent = '-';
+            minimizeButton.onclick = () => window.style.display = 'none';
+            
+            const maximizeButton = document.createElement('div');
+            maximizeButton.className = 'window-control';
+            maximizeButton.textContent = '□';
+            
+            windowControls.appendChild(closeButton);
+            windowControls.appendChild(minimizeButton);
+            windowControls.appendChild(maximizeButton);
+            
+            windowHeader.appendChild(windowTitle);
+            windowHeader.appendChild(windowControls);
+            
+            const windowContent = document.createElement('div');
+            windowContent.className = 'window-content';
+            
+            // Add app-specific content
+            switch(appName) {
+                case 'crafting':
+                    createCraftingApp(windowContent);
+                    break;
+                case 'inventory':
+                    createInventoryApp(windowContent);
+                    break;
+                case 'floppy':
+                    createFloppyApp(windowContent);
+                    break;
+                case 'performance':
+                    createPerformanceApp(windowContent);
+                    break;
+                case 'settings':
+                    createSettingsApp(windowContent);
+                    break;
+                case 'advanced':
+                    createAdvancedApp(windowContent);
+                    break;
+            }
+            
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            
+            window.appendChild(windowHeader);
+            window.appendChild(windowContent);
+            window.appendChild(resizeHandle);
+            
+            document.querySelector('.desktop').appendChild(window);
+            
+            // Position window randomly but within bounds
+            const maxX = window.parentElement.offsetWidth - 400;
+            const maxY = window.parentElement.offsetHeight - 300;
+            window.style.left = Math.floor(Math.random() * maxX) + 'px';
+            window.style.top = Math.floor(Math.random() * maxY) + 'px';
+            
+            // Make window draggable
+            makeDraggable(window, windowHeader);
+            
+            // Bring to front when clicked
+            window.addEventListener('mousedown', () => bringToFront(window));
+            
+            bringToFront(window);
+        }
+
+        function getAppTitle(appName) {
+            const titles = {
+                'crafting': 'Infinite Craft - Crafting',
+                'inventory': 'Infinite Craft - Inventory',
+                'floppy': 'Infinite Craft - Floppy Save',
+                'settings': 'System Settings',
+                'performance': 'System Performance',
+                'advanced': 'Advanced Tools'
+            };
+            return titles[appName] || appName;
+        }
+
+        function createCraftingApp(container) {
+            const userData = gameState.userData[gameState.currentUser];
+            container.innerHTML = `
+                <div class="game-area">
+                    <div class="crafting-section">
+                        <h3>Crafting Elements</h3>
+                        <div class="elements-grid" id="crafting-elements">
+                            ${Array.from(userData.inventory).map(element => 
+                                `<div class="element ${getElementClass(element)}" draggable="true" data-element="${element}">${element}</div>`
+                            ).join('')}
+                        </div>
+                        <div class="crafting-area">
+                            <div class="slot" id="slot1" ondrop="dropElement(event)" ondragover="allowDrop(event)">Slot 1</div>
+                            <div class="slot" id="slot2" ondrop="dropElement(event)" ondragover="allowDrop(event)">Slot 2</div>
+                        </div>
+                        <button class="mac-button" onclick="craftElements()">CRAFT</button>
+                        <button class="mac-button" onclick="clearSlots()">CLEAR</button>
+                    </div>
+                    <div class="inventory-section">
+                        <h3>Discovered Elements</h3>
+                        <div class="elements-grid" id="inventory-elements">
+                            ${Array.from(userData.inventory).map(element => 
+                                `<div class="element ${getElementClass(element)}" onclick="showElementDetail('${element}')">${element}</div>`
+                            ).join('')}
+                        </div>
+                        <div class="mac-button" onclick="exportInventory()">EXPORT</div>
+                        <div class="mac-button" onclick="importInventory()">IMPORT</div>
+                    </div>
+                </div>
+            `;
+            
+            // Add drag event listeners to elements
+            setTimeout(() => {
+                document.querySelectorAll('#crafting-elements .element').forEach(element => {
+                    element.addEventListener('dragstart', dragElement);
+                });
+            }, 100);
+        }
+
+        function getElementClass(element) {
+            if (element === 'Virus') return 'virus';
+            if (element === 'Trash') return 'impossible';
+            if (['Time', 'Paradox', 'Software', 'Database', 'System', 'Interface'].includes(element)) return 'epic';
+            if (['Lava', 'Mountain', 'Volcano', 'Storm', 'Glass', 'Hourglass'].includes(element)) return 'rare';
+            return '';
+        }
+
+        function createInventoryApp(container) {
+            const userData = gameState.userData[gameState.currentUser];
+            container.innerHTML = `
+                <h3>Element Inventory</h3>
+                <div class="elements-grid">
+                    ${Array.from(userData.inventory).map(element => 
+                        `<div class="element ${getElementClass(element)}" onclick="showElementDetail('${element}')">${element}</div>`
+                    ).join('')}
+                </div>
+                <p>Total Elements: ${userData.inventory.size}</p>
+                <button class="mac-button" onclick="exportInventory()">Export to Floppy</button>
+                <button class="mac-button" onclick="clearInventory()">Clear Inventory</button>
+            `;
+        }
+
+        function createFloppyApp(container) {
+            const userData = gameState.userData[gameState.currentUser];
+            container.innerHTML = `
+                <h3>Floppy Disk Management</h3>
+                <div class="floppy-save-area" id="floppy-save-area" ondrop="dropToFloppy(event)" ondragover="allowDrop(event)">
+                    Drag elements here to save to floppy
+                </div>
+                <div class="floppy-rack" id="floppy-rack">
+                    ${userData.savedFloppies.map((floppy, index) => `
+                        <div class="inventory-floppy" onclick="loadFloppy(${index})">
+                            <div>${floppy.name}</div>
+                            <div>${floppy.elements.length} elements</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="mac-button" onclick="createNewFloppy()">New Floppy</button>
+                <button class="mac-button" onclick="deleteFloppy()">Delete Floppy</button>
+            `;
+        }
+
+        function createPerformanceApp(container) {
+            container.innerHTML = `
+                <h3>System Performance</h3>
+                <div style="margin: 20px 0;">
+                    <div>FPS: ${gameState.performance.fps}</div>
+                    <div>Memory: ${gameState.performance.memory}%</div>
+                    <div>CPU: ${gameState.performance.cpu}%</div>
+                </div>
+                <div class="mac-button" onclick="refreshPerformance()">Refresh</div>
+                <div class="mac-button" onclick="optimizePerformance()">Optimize</div>
+            `;
+        }
+
+        function createSettingsApp(container) {
+            const userData = gameState.userData[gameState.currentUser];
+            container.innerHTML = `
+                <h3>System Settings</h3>
+                <div style="margin: 20px 0;">
+                    <div>Current User: ${gameState.currentUser}</div>
+                    <div>Elements Discovered: ${userData.inventory.size}</div>
+                </div>
+                <button class="mac-button" onclick="resetGame()">Reset Game</button>
+                ${gameState.currentUser === 'admin' ? `
+                    <button class="mac-button" onclick="unlockAllForAllUsers()">Unlock All for All Users</button>
+                    <button class="mac-button" onclick="resetAllUsers()">Reset All Users</button>
+                ` : ''}
+            `;
+        }
+
+        function createAdvancedApp(container) {
+            container.innerHTML = `
+                <h3>Advanced Tools</h3>
+                <p>Administrator access required for these tools.</p>
+                <button class="mac-button" onclick="unlockAllElements()">Unlock All Elements</button>
+                <button class="mac-button" onclick="addCustomElement()">Add Custom Element</button>
+                <button class="mac-button" onclick="viewGameData()">View Game Data</button>
+            `;
+        }
+
+        // Drag and Drop Functions for Elements
+        function dragElement(ev) {
+            ev.dataTransfer.setData("text", ev.target.dataset.element);
+            ev.target.classList.add('dragging');
+        }
+
+        function dropElement(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("text");
+            const slot = ev.target;
+            
+            if (slot.classList.contains('slot')) {
+                slot.textContent = data;
+                slot.classList.add('filled');
+                slot.dataset.element = data;
+                
+                // Update crafting slots
+                if (slot.id === 'slot1') {
+                    gameState.craftingSlots[0] = data;
+                } else if (slot.id === 'slot2') {
+                    gameState.craftingSlots[1] = data;
+                }
+            }
+            
+            document.querySelectorAll('.element.dragging').forEach(el => {
+                el.classList.remove('dragging');
+            });
+        }
+
+        function dropToFloppy(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("text");
+            const saveArea = document.getElementById('floppy-save-area');
+            
+            if (data && saveArea) {
+                saveArea.textContent = `Saving "${data}" to floppy...`;
+                saveArea.classList.add('highlight');
+                
+                // In a real implementation, this would save to a floppy
+                setTimeout(() => {
+                    saveArea.textContent = `"${data}" saved successfully!`;
+                    setTimeout(() => {
+                        saveArea.textContent = 'Drag elements here to save to floppy';
+                        saveArea.classList.remove('highlight');
+                    }, 2000);
+                }, 1000);
+            }
+        }
+
+        // Crafting Functions
+        function craftElements() {
+            const [elem1, elem2] = gameState.craftingSlots;
+            const userData = gameState.userData[gameState.currentUser];
+            
+            if (!elem1 || !elem2) {
+                alert('Please place two elements in the crafting slots!');
+                return;
+            }
+            
+            const combination1 = `${elem1}+${elem2}`;
+            const combination2 = `${elem2}+${elem1}`;
+            
+            let result = gameState.combinations[combination1] || gameState.combinations[combination2];
+            
+            if (result) {
+                // Special case: Virus combination
+                if (result === 'Virus') {
+                    triggerVirus();
+                    return;
+                }
+                
+                // Add to inventory if not already there
+                if (!userData.inventory.has(result)) {
+                    userData.inventory.add(result);
+                    updateInventoryDisplays();
+                    showSaveIndicator(`Discovered: ${result}!`);
+                    saveGameData(); // Auto-save on discovery
+                } else {
+                    showSaveIndicator(`Already discovered: ${result}`);
+                }
+                
+                // Clear slots
+                clearSlots();
+            } else {
+                alert(`No combination found for ${elem1} and ${elem2}`);
+            }
+        }
+
+        function triggerVirus() {
+            // Show virus animation
+            virusAnimation.style.display = 'flex';
+            
+            // Reset game after animation
+            setTimeout(() => {
+                const userData = gameState.userData[gameState.currentUser];
+                userData.inventory = new Set(['Earth', 'Fire', 'Water', 'Wind']);
+                userData.savedFloppies = [];
+                updateInventoryDisplays();
+                updateFloppyDisplay();
+                
+                // Close all windows
+                document.querySelectorAll('.window').forEach(window => {
+                    window.style.display = 'none';
+                });
+                
+                // Hide virus animation
+                virusAnimation.style.display = 'none';
+                
+                alert('⚠️ VIRUS DETECTED! Your system has been reset. ⚠️\n\nAll progress has been lost. Be careful what you combine next time!');
+                
+                saveGameData(); // Save after virus reset
+            }, 3000);
+        }
+
+        function clearSlots() {
+            document.querySelectorAll('.slot').forEach(slot => {
+                slot.textContent = slot.id === 'slot1' ? 'Slot 1' : 'Slot 2';
+                slot.classList.remove('filled');
+                delete slot.dataset.element;
+            });
+            
+            gameState.craftingSlots = [null, null];
+        }
+
+        // Inventory Functions
+        function updateInventoryDisplays() {
+            const userData = gameState.userData[gameState.currentUser];
+            
+            // Update crafting elements
+            const craftingElements = document.getElementById('crafting-elements');
+            if (craftingElements) {
+                craftingElements.innerHTML = Array.from(userData.inventory).map(element => 
+                    `<div class="element ${getElementClass(element)}" draggable="true" data-element="${element}">${element}</div>`
+                ).join('');
+                
+                // Re-add drag event listeners
+                document.querySelectorAll('#crafting-elements .element').forEach(element => {
+                    element.addEventListener('dragstart', dragElement);
+                });
+            }
+            
+            // Update inventory elements
+            const inventoryElements = document.getElementById('inventory-elements');
+            if (inventoryElements) {
+                inventoryElements.innerHTML = Array.from(userData.inventory).map(element => 
+                    `<div class="element ${getElementClass(element)}" onclick="showElementDetail('${element}')">${element}</div>`
+                ).join('');
+            }
+        }
+
+        function showElementDetail(elementName) {
+            const detailPopup = document.getElementById('element-detail');
+            const description = gameState.elementDescriptions[elementName] || 'No description available.';
+            
+            document.getElementById('detail-element-name').textContent = elementName;
+            document.getElementById('detail-description').textContent = description;
+            document.getElementById('detail-recipe').textContent = 'Unknown';
+            document.getElementById('detail-date').textContent = new Date().toLocaleDateString();
+            
+            // Determine rarity
+            let rarity = 'Common';
+            if (elementName === 'Virus') {
+                rarity = 'DANGEROUS';
+                document.getElementById('detail-element-rarity').className = 'floppy-label mac-red';
+            } else if (elementName === 'Trash') {
+                rarity = 'IMPOSSIBLE';
+                document.getElementById('detail-element-rarity').className = 'floppy-label mac-purple';
+            } else if (['Time', 'Paradox', 'Software', 'Database', 'System', 'Interface'].includes(elementName)) {
+                rarity = 'Epic';
+                document.getElementById('detail-element-rarity').className = 'floppy-label mac-green';
+            } else if (['Lava', 'Mountain', 'Volcano', 'Storm', 'Glass', 'Hourglass'].includes(elementName)) {
+                rarity = 'Rare';
+                document.getElementById('detail-element-rarity').className = 'floppy-label mac-orange';
+            } else {
+                document.getElementById('detail-element-rarity').className = 'floppy-label';
+            }
+            
+            document.getElementById('detail-element-rarity').textContent = rarity;
+            
+            detailPopup.style.display = 'block';
+            bringToFront(detailPopup);
+        }
+
+        function closeElementDetail() {
+            document.getElementById('element-detail').style.display = 'none';
+        }
+
+        function exportInventory() {
+            const userData = gameState.userData[gameState.currentUser];
+            const data = JSON.stringify(Array.from(userData.inventory));
+            alert(`Inventory exported! Data: ${data}`);
+        }
+
+        function importInventory() {
+            const userData = gameState.userData[gameState.currentUser];
+            const data = prompt('Paste inventory data:');
+            if (data) {
+                try {
+                    const imported = JSON.parse(data);
+                    imported.forEach(element => userData.inventory.add(element));
+                    updateInventoryDisplays();
+                    showSaveIndicator('Inventory imported successfully!');
+                    saveGameData(); // Save after import
+                } catch (e) {
+                    alert('Invalid data format!');
+                }
+            }
+        }
+
+        function clearInventory() {
+            const userData = gameState.userData[gameState.currentUser];
+            if (confirm('Are you sure you want to clear your inventory? This cannot be undone!')) {
+                userData.inventory = new Set(['Earth', 'Fire', 'Water', 'Wind']);
+                updateInventoryDisplays();
+                showSaveIndicator('Inventory cleared!');
+                saveGameData(); // Save after clear
+            }
+        }
+
+        // Floppy Functions
+        function createNewFloppy() {
+            const userData = gameState.userData[gameState.currentUser];
+            const floppyName = prompt('Enter floppy name:');
+            if (floppyName) {
+                userData.savedFloppies.push({
+                    name: floppyName,
+                    elements: [],
+                    date: new Date().toLocaleDateString()
+                });
+                updateFloppyDisplay();
+                showSaveIndicator(`Floppy "${floppyName}" created!`);
+                saveGameData(); // Save after creating floppy
+            }
+        }
+
+        function loadFloppy(index) {
+            const userData = gameState.userData[gameState.currentUser];
+            const floppy = userData.savedFloppies[index];
+            if (floppy) {
+                alert(`Loading floppy: ${floppy.name}\nContains: ${floppy.elements.join(', ') || 'No elements'}`);
+            }
+        }
+
+        function deleteFloppy() {
+            const userData = gameState.userData[gameState.currentUser];
+            if (userData.savedFloppies.length === 0) {
+                alert('No floppies to delete!');
+                return;
+            }
+            
+            const index = prompt('Enter floppy number to delete:');
+            if (index && index > 0 && index <= userData.savedFloppies.length) {
+                const deleted = userData.savedFloppies.splice(index - 1, 1);
+                updateFloppyDisplay();
+                showSaveIndicator(`Floppy "${deleted[0].name}" deleted!`);
+                saveGameData(); // Save after deleting floppy
+            }
+        }
+
+        function updateFloppyDisplay() {
+            const userData = gameState.userData[gameState.currentUser];
+            const floppyRack = document.getElementById('floppy-rack');
+            if (floppyRack) {
+                floppyRack.innerHTML = userData.savedFloppies.map((floppy, index) => `
+                    <div class="inventory-floppy" onclick="loadFloppy(${index})">
+                        <div>${floppy.name}</div>
+                        <div>${floppy.elements.length} elements</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // System Functions
+        function showSystemMenu() {
+            alert('System Menu:\n- About This Mac\n- System Preferences\n- Recent Items\n- Force Quit');
+        }
+
+        function emptyTrash() {
+            if (confirm('Empty Trash? This cannot be undone.')) {
+                showSaveIndicator('Trash emptied!');
+            }
+        }
+
+        function showSaveIndicator(message) {
+            const indicator = document.getElementById('save-indicator');
+            indicator.textContent = message;
+            indicator.style.display = 'block';
+            
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+        }
+
+        function setupExitButton() {
+            exitButton.onclick = () => {
+                if (confirm('Exit to login screen?')) {
+                    gameScreen.style.display = 'none';
+                    loginScreen.style.display = 'flex';
+                    exitButton.style.display = 'none';
+                    switchTab('floppy');
+                    
+                    // Close all windows
+                    document.querySelectorAll('.window').forEach(window => {
+                        window.style.display = 'none';
+                    });
+                }
+            };
+        }
+
+        function resetGame() {
+            const userData = gameState.userData[gameState.currentUser];
+            if (confirm('Are you sure you want to reset the game? All progress will be lost!')) {
+                userData.inventory = new Set(['Earth', 'Fire', 'Water', 'Wind']);
+                userData.savedFloppies = [];
+                updateInventoryDisplays();
+                updateFloppyDisplay();
+                showSaveIndicator('Game reset!');
+                saveGameData(); // Save after reset
+            }
+        }
+
+        // Admin Functions
+        function unlockAllForAllUsers() {
+            if (gameState.currentUser !== 'admin') {
+                alert('Administrator access required!');
+                return;
+            }
+            
+            if (confirm('Unlock all elements for ALL users? This cannot be undone.')) {
+                Object.keys(gameState.userData).forEach(user => {
+                    Object.values(gameState.combinations).forEach(element => {
+                        gameState.userData[user].inventory.add(element);
+                    });
+                    gameState.userData[user].unlockedAll = true;
+                });
+                
+                // Update current user's display if they're in a game session
+                if (gameScreen.style.display === 'flex') {
+                    updateInventoryDisplays();
+                }
+                
+                showSaveIndicator('All elements unlocked for all users!');
+                saveGameData(); // Save after unlocking all
+            }
+        }
+
+        function resetAllUsers() {
+            if (gameState.currentUser !== 'admin') {
+                alert('Administrator access required!');
+                return;
+            }
+            
+            if (confirm('Reset ALL user accounts? This cannot be undone.')) {
+                Object.keys(gameState.userData).forEach(user => {
+                    gameState.userData[user].inventory = new Set(['Earth', 'Fire', 'Water', 'Wind']);
+                    gameState.userData[user].savedFloppies = [];
+                    gameState.userData[user].unlockedAll = false;
+                });
+                
+                // Update current user's display if they're in a game session
+                if (gameScreen.style.display === 'flex') {
+                    updateInventoryDisplays();
+                    updateFloppyDisplay();
+                }
+                
+                showSaveIndicator('All user accounts reset!');
+                saveGameData(); // Save after reset
+            }
+        }
+
+        function refreshPerformance() {
+            // Simulate performance metrics update
+            gameState.performance.fps = Math.floor(Math.random() * 30) + 30;
+            gameState.performance.memory = Math.floor(Math.random() * 40) + 20;
+            gameState.performance.cpu = Math.floor(Math.random() * 50) + 20;
+            
+            // Refresh the performance app if open
+            const performanceWindow = document.getElementById('performance-window');
+            if (performanceWindow) {
+                performanceWindow.querySelector('.window-content').innerHTML = `
+                    <h3>System Performance</h3>
+                    <div style="margin: 20px 0;">
+                        <div>FPS: ${gameState.performance.fps}</div>
+                        <div>Memory: ${gameState.performance.memory}%</div>
+                        <div>CPU: ${gameState.performance.cpu}%</div>
+                    </div>
+                    <button class="mac-button" onclick="refreshPerformance()">Refresh</button>
+                    <button class="mac-button" onclick="optimizePerformance()">Optimize</button>
+                `;
+            }
+            
+            showSaveIndicator('Performance metrics updated!');
+        }
+
+        function optimizePerformance() {
+            gameState.performance.fps = 60;
+            gameState.performance.memory = 25;
+            gameState.performance.cpu = 15;
+            refreshPerformance();
+            showSaveIndicator('System optimized!');
+        }
+
+        // Advanced Functions (Admin only)
+        function unlockAllElements() {
+            if (gameState.currentUser !== 'admin') {
+                alert('Administrator access required!');
+                return;
+            }
+            
+            const userData = gameState.userData[gameState.currentUser];
+            Object.values(gameState.combinations).forEach(element => {
+                userData.inventory.add(element);
+            });
+            userData.unlockedAll = true;
+            updateInventoryDisplays();
+            showSaveIndicator('All elements unlocked!');
+            saveGameData(); // Save after unlocking
+        }
+
+        function addCustomElement() {
+            if (gameState.currentUser !== 'admin') {
+                alert('Administrator access required!');
+                return;
+            }
+            
+            const userData = gameState.userData[gameState.currentUser];
+            const elementName = prompt('Enter custom element name:');
+            if (elementName) {
+                userData.inventory.add(elementName);
+                updateInventoryDisplays();
+                showSaveIndicator(`Custom element "${elementName}" added!`);
+                saveGameData(); // Save after adding custom element
+            }
+        }
+
+        function viewGameData() {
+            if (gameState.currentUser !== 'admin') {
+                alert('Administrator access required!');
+                return;
+            }
+            
+            const userData = gameState.userData[gameState.currentUser];
+            alert(`Game Data:\n- User: ${gameState.currentUser}\n- Elements: ${userData.inventory.size}\n- Floppies: ${userData.savedFloppies.length}\n- All Unlocked: ${userData.unlockedAll}`);
+        }
+
+        // Utility Functions
+        function makeDraggable(element, handle) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            handle.onmousedown = dragMouseDown;
+            
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // get the mouse cursor position at startup:
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                // call a function whenever the cursor moves:
+                document.onmousemove = elementDrag;
+            }
+            
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // calculate the new cursor position:
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                // set the element's new position:
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+            
+            function closeDragElement() {
+                // stop moving when mouse button is released:
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        function bringToFront(element) {
+            // Bring element to front by setting highest z-index
+            let maxZ = 10;
+            document.querySelectorAll('.window, .element-detail').forEach(el => {
+                const z = parseInt(window.getComputedStyle(el).zIndex);
+                if (z > maxZ) maxZ = z;
+            });
+            
+            element.style.zIndex = maxZ + 1;
+        }
+
+        // Initialize the application
+        window.onload = function() {
+            setupTabSystem();
+            loadSavedData();
+            
+            // Set up tab switching
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.onclick = () => switchTab(tab.dataset.tab);
+            });
+        };
+    </script>
+</body>
+</html>
